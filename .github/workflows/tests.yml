@@ -1,5 +1,5 @@
 name: CI Pipeline
-# Trigger the workflow on push or pull request events
+
 on: [push, pull_request]
 
 jobs:
@@ -15,7 +15,7 @@ jobs:
           --health-cmd "mongo --eval 'db.runCommand({ ping: 1 })'" 
           --health-interval 30s 
           --health-timeout 10s 
-          --health-retries 10 
+          --health-retries 10
 
     steps:
       - name: Checkout Code
