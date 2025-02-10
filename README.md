@@ -29,7 +29,7 @@ A FastAPI application that manages a wine dataset, trains a machine learning mod
 
 1. Clone the Repository:
    ```bash
-   git clone <YOUR_REMOTE_REPOSITORY_URL>
+   git clone https://github.com/UchihaMadala/wine_api_project
    cd wine_api_project
 
 2. Build and Run the Application:
