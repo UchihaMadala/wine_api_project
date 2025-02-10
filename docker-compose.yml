@@ -1,0 +1,20 @@
+
+services:
+  app:
+    build: .
+    ports:
+      - "8000:80"  # Maps port 80 inside the container to 8000 on your machine
+    environment:
+      - MONGO_URI=mongodb://mongo:27017/
+    depends_on:
+      - mongo
+
+  mongo:
+    image: mongo:latest
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo_data:/data/db
+
+volumes:
+  mongo_data:
