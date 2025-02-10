@@ -24,6 +24,6 @@ typing-extensions==4.2.0
 uvicorn==0.18.2
 watchfiles==0.15.0
 websockets==10.3
-docker 
-pytest
+docker==5.0.3
+pytest==7.1.2
 httpx
