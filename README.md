@@ -31,8 +31,10 @@ A FastAPI application that manages a wine dataset, trains a machine learning mod
    ```bash
    git clone <YOUR_REMOTE_REPOSITORY_URL>
    cd wine_api_project
+
 2. Build and Run the Application:
     docker-compose up --build
+   
 
 The FastAPI app will be available at http://localhost:8000.
 Swagger UI documentation can be accessed at http://localhost:8000/docs.
