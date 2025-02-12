@@ -1,5 +1,3 @@
-import os
-import time
 from fastapi import FastAPI, HTTPException
 from pymongo import MongoClient
 import pandas as pd
@@ -7,11 +5,6 @@ from sklearn.model_selection import train_test_split
 from sklearn.neighbors import KNeighborsClassifier
 from sklearn.metrics import accuracy_score
 from sklearn.model_selection import GridSearchCV
-
-# If running in GitHub Actions, wait a few seconds for the MongoDB service to be ready.
-if os.getenv("GITHUB_ACTIONS"):
-    print("Detected GitHub Actions environment. Waiting 15 seconds for MongoDB service to be ready...")
-    time.sleep(15)
 
 # --- MongoDB Setup ---
 MONGO_URI = "mongodb://mongo:27017/"
@@ -23,11 +16,14 @@ collection = db["wine_data"]
 if collection.count_documents({}) == 0:
     print("⚠️ No data found in MongoDB! Loading data from wine.csv...")
     df = pd.read_csv("wine.csv")
-
+    
     # Print the CSV column names for debugging
     print("📊 CSV Columns:", df.columns.tolist())
-
-    # Insert data into MongoDB as-is (no id column added)
+    
+    # If there is no 'id' column, add one.
+    if "id" not in df.columns:
+        df.insert(0, "id", range(1, len(df) + 1))
+    
     collection.insert_many(df.to_dict(orient="records"))
     print("✅ Data loaded into MongoDB from wine.csv.")
 
@@ -42,38 +38,30 @@ print("📝 MongoDB Columns:", df.columns.tolist())
 if "wine" not in df.columns:
     raise ValueError("❌ 'wine' column is missing! Check MongoDB data.")
 
-# Train Model with hyperparameter tuning
+# Train Model
 def train_model():
-    global model, X_train, X_test, y_train, y_test, df
-
+    global model, X_train, X_test, y_train, y_test
+    
     y = df["wine"]
     X = df.drop("wine", axis=1)
 
     X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
 
-    # Hyperparameter tuning: find best n_neighbors from 1 to 29
+    # Hyperparameter tuning: finding the best `n_neighbors`
     param_grid = {"n_neighbors": range(1, 30)}
     grid_search = GridSearchCV(KNeighborsClassifier(), param_grid, cv=5)
     grid_search.fit(X_train, y_train)
 
     model = grid_search.best_estimator_
     print(f"✅ Best n_neighbors: {grid_search.best_params_['n_neighbors']}")
-    print(f"📊 Training Accuracy: {accuracy_score(y_train, model.predict(X_train)):.4f}")
-    print(f"📊 Test Accuracy: {accuracy_score(y_test, model.predict(X_test)):.4f}")
+    print(f"📊 New Training Accuracy: {accuracy_score(y_train, model.predict(X_train)):.4f}")
+    print(f"📊 New Test Accuracy: {accuracy_score(y_test, model.predict(X_test)):.4f}")
 
 # Initial training
 train_model()
 
 # --- FastAPI Setup ---
-app = FastAPI(
-    title="Wine Prediction API",
-    description="An API for managing wine data, retraining an ML model, and making predictions.",
-    version="1.0.0",
-    swagger_ui_parameters={
-        "defaultModelsExpandDepth": -1,
-        "docExpansion": "none"
-    }
-)
+app = FastAPI()
 
 @app.get("/")
 def root():
