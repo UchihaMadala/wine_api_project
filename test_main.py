@@ -1,5 +1,8 @@
 from unittest.mock import patch, MagicMock
 import pytest
+import pandas as pd
+from sklearn.neighbors import KNeighborsClassifier
+import numpy as np
 
 # Mock data definition
 mock_data = [
@@ -40,10 +43,29 @@ class MockCollection:
 mock_db = MagicMock()
 mock_db.wine_data = MockCollection()
 
-# Mock MongoDB client before importing app
-with patch('pymongo.MongoClient') as mock_client:
+# Create mock ML model
+mock_model = KNeighborsClassifier(n_neighbors=3)
+X = pd.DataFrame([{k: v for k, v in mock_data[0].items() 
+                  if k not in ['id', 'wine']}])
+y = pd.Series([mock_data[0]['wine']])
+mock_model.fit(X, y)
+
+# Mock MongoDB client and ML model before importing app
+with patch('pymongo.MongoClient') as mock_client, \
+     patch('sklearn.model_selection.train_test_split') as mock_split, \
+     patch('sklearn.model_selection.GridSearchCV') as mock_grid:
+    
+    # Setup MongoDB mock
     mock_client.return_value.server_info.return_value = True
     mock_client.return_value.__getitem__.return_value = mock_db
+    
+    # Setup ML model mocks
+    mock_split.return_value = (X, X, y, y)
+    mock_grid_instance = MagicMock()
+    mock_grid_instance.best_estimator_ = mock_model
+    mock_grid_instance.best_params_ = {'n_neighbors': 3}
+    mock_grid.return_value = mock_grid_instance
+    
     from fastapi.testclient import TestClient
     from main import app
 
