@@ -1,11 +1,7 @@
-from fastapi.testclient import TestClient
 from unittest.mock import patch, MagicMock
 import pytest
-from main import app
 
-client = TestClient(app)
-
-# Mock MongoDB connection and data
+# Mock data definition
 mock_data = [
     {
         "id": 1,
@@ -40,17 +36,18 @@ class MockCollection:
     def count_documents(self, *args, **kwargs):
         return len(mock_data)
 
-# Create mock database and client
+# Create mock database
 mock_db = MagicMock()
 mock_db.wine_data = MockCollection()
 
-# Mock the get_database function
-@pytest.fixture(autouse=True)
-def mock_db_connection():
-    with patch('main.get_database', return_value=mock_db):
-        with patch('main.db', mock_db):
-            with patch('main.collection', mock_db.wine_data):
-                yield
+# Mock MongoDB client before importing app
+with patch('pymongo.MongoClient') as mock_client:
+    mock_client.return_value.server_info.return_value = True
+    mock_client.return_value.__getitem__.return_value = mock_db
+    from fastapi.testclient import TestClient
+    from main import app
+
+client = TestClient(app)
 
 def test_root():
     response = client.get("/")
