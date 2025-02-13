@@ -1,5 +1,5 @@
 from fastapi.testclient import TestClient
-from unittest.mock import patch
+from unittest.mock import patch, MagicMock
 from main import app
 
 client = TestClient(app)
@@ -36,14 +36,17 @@ class MockCollection:
     def insert_one(self, *args, **kwargs):
         return True
 
-# Patch MongoDB connection
-@patch('main.collection', MockCollection())
+# Mock MongoDB database and client
+mock_db = MagicMock()
+mock_db.wine_data = MockCollection()
+
+@patch('main.db', mock_db)
 def test_root():
     response = client.get("/")
     assert response.status_code == 200
     assert response.json() == {"message": "Wine Prediction API is running!"}
 
-@patch('main.collection', MockCollection())
+@patch('main.db', mock_db)
 def test_create_entry():
     entry = {
         "wine": 2,
@@ -65,13 +68,13 @@ def test_create_entry():
     assert response.status_code == 200
     assert response.json() == {"message": "Entry added successfully"}
 
-@patch('main.collection', MockCollection())
+@patch('main.db', mock_db)
 def test_get_entries():
     response = client.get("/entries/")
     assert response.status_code == 200
     assert isinstance(response.json(), list)
 
-@patch('main.collection', MockCollection())
+@patch('main.db', mock_db)
 def test_predict():
     features = {
         "alcohol": 13.0,
