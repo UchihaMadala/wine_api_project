@@ -17,6 +17,12 @@ if collection.count_documents({}) == 0:
     print("⚠️ No data found in MongoDB! Loading data from wine.csv...")
     df = pd.read_csv("wine.csv")
     
+    # Add ID column
+    df.insert(0, "id", range(1, len(df) + 1))
+    
+    collection.insert_many(df.to_dict(orient="records"))
+
+    
     # Print the CSV column names for debugging
     print("📊 CSV Columns:", df.columns.tolist())
     
@@ -44,6 +50,11 @@ def train_model():
     
     y = df["wine"]
     X = df.drop("wine", axis=1)
+    
+    # Handle missing values by dropping id column and filling NaN values with mean
+    if "id" in X.columns:
+        X = X.drop("id", axis=1)
+    X = X.fillna(X.mean())
 
     X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
 

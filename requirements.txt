@@ -1,15 +1,18 @@
 anyio==3.6.1
 click==8.1.3
 colorama==0.4.5
+docker==5.0.3
 fastapi==0.78.0
 h11==0.13.0
 httptools==0.4.0
+httpx==0.24.1  # Added version (using a stable version as example)
 idna==3.3
 joblib==1.1.0
 numpy==1.23.0
 pandas==1.4.3
 pydantic==1.9.1
 pymongo==4.1.1
+pytest==7.1.2
 python-dateutil==2.8.2
 python-dotenv==0.20.0
 pytz==2022.1
@@ -24,6 +27,3 @@ typing-extensions==4.2.0
 uvicorn==0.18.2
 watchfiles==0.15.0
 websockets==10.3
-docker==5.0.3
-pytest==7.1.2
-httpx
