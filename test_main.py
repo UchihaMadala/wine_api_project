@@ -28,7 +28,12 @@ mock_data = [
 # Mock MongoDB collection methods
 class MockCollection:
     def find(self, *args, **kwargs):
-        return mock_data
+        class MockCursor:
+            def __init__(self, data):
+                self.data = data
+            def __iter__(self):
+                return iter(self.data)
+        return MockCursor(mock_data)
         
     def find_one(self, *args, **kwargs):
         return mock_data[0]
